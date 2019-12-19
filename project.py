@@ -149,7 +149,7 @@ class HaveLogin(QWidget):
 
     def game_start(self):
         pass
-        #   как открыть в новом окн игру
+        #   как открыть в новом окне игру
 
 
 class NoLogin(QWidget):
