@@ -73,8 +73,7 @@ class InputText:
 
     def open(self, login_t):
         self.id_login = self.cur.execute("""SELECT id FROM Main
-                                            WHERE login == ?""",
-                                         (login_t,)).fetchall()
+                                            WHERE login == ?""", (login_t,)).fetchall()
         print(self.id_login)
         if self.id_login != []:
             self.l, = self.log_id[0] ###
@@ -94,7 +93,6 @@ class InputText:
         screen.blit(self.text_surf, (self.rect.x + 5, self.rect.y + 5))
 
         pygame.draw.rect(screen, pygame.Color("lightblue"), self.rect, 4)
-
 
 
 
