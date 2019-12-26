@@ -1,5 +1,3 @@
-<<<<<<< Updated upstream
-=======
 from PyQt5.QtWidgets import QApplication, QMainWindow, QWidget, QLabel, QPushButton, QLineEdit
 from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
@@ -8,203 +6,191 @@ import sys
 import sqlite3
 
 
-class StartWindow(QMainWindow):
+class StartWindow:
     def __init__(self):
         super().__init__()
+        pygame.init()
 
         self.con = sqlite3.connect("one_little_worm.db")
         self.cur = self.con.cursor()
 
-        self.setGeometry(500, 300, 700, 500)
-        self.setWindowTitle("Welcome :)")
+        size = width, height = 600, 500
+        screen = pygame.display.set_mode(size)
 
-        self.lbl1 = QLabel(self)
-        self.lbl1.setText("Добро пожаловать в")
-        self.lbl1.setFont(QFont('Serif', 17, QFont.Light))
-        self.lbl1.resize(self.lbl1.sizeHint())
-        self.lbl1.move(40, 60)
+        titl = pygame.font.SysFont('gadugi', 36)
+        self.text1 = titl.render("One Little Warm", 1, pygame.Color("blue"))
 
-        self.name_game = QLabel(self)
-        self.name_game.setText("One little worm !")
-        self.name_game.setFont(QFont('Serif', 20, QFont.Bold))
-        self.name_game.resize(self.name_game.sizeHint())
-        self.name_game.move(325, 100)
+        ask_input = pygame.font.SysFont('arial', 25)
+        self.text2 = ask_input.render("Введите логин:", 1, pygame.Color("lightblue"))
 
-        self.to_start = QLabel(self)
-        self.to_start.setText("Для начала игры введите логин")
-        self.to_start.setFont(QFont('Serif', 12, QFont.AllLowercase))
-        self.to_start.resize(self.to_start.sizeHint())
-        self.to_start.move(45, 230)
+        login = InputText(235, 230, 140, 32)
 
-        self.login = QLineEdit(self)
-        self.login.resize(220, 30)
-        self.login.move(380, 227)
+        run_st = True
 
-        self.to_check = QLabel(self)
-        self.to_check.setText("Для проверки логина нажмите")
-        self.to_check.setFont(QFont("Serif", 14))
-        self.to_check.resize(self.to_check.sizeHint())
-        self.to_check.move(65, 300)
+        while run_st:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run_st = False
+                '''if event.type == pygame.MOUSEBUTTONDOWN:
+                    self.get_click(event.pos)'''
+                login.events(event)
+            screen.fill((30, 30, 30))
+            login.draw(screen)
+            screen.blit(self.text1, (180, 60))
+            screen.blit(self.text2, (220, 170))
+            pygame.display.flip()
 
-        self.ctrl_alt = QLabel(self)
-        self.ctrl_alt.setText("Ctrl + Alt")
-        self.ctrl_alt.setFont(QFont('Serif', 10, QFont.Bold))
-        self.ctrl_alt.move(425, 300)
+    def get_click(self, pos):
+        print("here")
 
-        self.or_push = QLabel(self)
-        self.or_push.setText("или нажмите кнопку ")
-        self.or_push.setFont(QFont("Serif", 14))
-        self.or_push.resize(self.or_push.sizeHint())
-        self.or_push.move(120, 350)
 
-        self.btn_check = QPushButton(self)
-        self.btn_check.setText("Проверить")
-        self.btn_check.setFont(QFont('Serif', 10, QFont.Bold))
-        self.btn_check.resize(self.btn_check.sizeHint())
-        self.btn_check.move(410, 350)
+class InputText:
+    def __init__(self, x, y, width, height, text=''):
+        self.rect = pygame.Rect(x, y, width, height)
+        self.login_t = text
+        self.text_surf = pygame.font.Font(None, 32).render(text, True, pygame.Color('lightblue'))
+        self.run_text = False
 
-        self.btn_check.clicked.connect(self.check_login)
+        self.con = sqlite3.connect("one_little_worm.db")
+        self.cur = self.con.cursor()
 
-    def keyPressEvent(self, event):
-        if int(event.modifiers()) == (Qt.AltModifier + Qt.ControlModifier):
-            if self.login != "":
-                self.open()
+    def events(self, event):
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            if self.rect.collidepoint(event.pos):
+                self.run_text = True
+            else:
+                self.run_text = False
 
-    def check_login(self):
-        if self.login != "":
-            self.open()
+        if event.type == pygame.KEYDOWN and self.run_text:
+            if event.key == pygame.K_RETURN:
+                self.open(self.login_t)
+                self.login_t = ""
+            elif event.key == pygame.K_BACKSPACE:
+                self.login_t = self.login_t[:-1]
+            else:
+                self.login_t += event.unicode
+            self.text_surf = pygame.font.Font(None, 32).render(self.login_t, True, pygame.Color('lightblue'))
 
-    def open(self):
-        self.id_login = self.cur.execute("""SELECT id FROM logins 
-                            WHERE login == ?""", (self.login.text(),)).fetchall()
-
+    def open(self, login_t):
+        self.id_login = self.cur.execute("""SELECT id FROM logins
+                                            WHERE login == ?""",
+                                         (login_t,)).fetchall()
+        print(self.id_login)
         if self.id_login != []:
-            self.l, = self.id_login[0]
+            self.l, = self.id_login[0] ###
 
-            self.have_login = HaveLogin("have", self.login.text())
-            self.have_login.show()
+            self.have_login = HaveLogin(login_t)
         else:
-            self.no_login = NoLogin(self.login.text())
-            self.no_login.show()
+            self.no_login = NoLogin(login_t)
+            #self.no_login.show()
+            #self.close()
+
+    def update(self):
+        width = max(200, self.text_surf.get_width() + 8)
+        self.rect.w = width
+
+    def draw(self, screen):
+        screen.blit(self.text_surf, (self.rect.x + 5, self.rect.y + 5))
+
+        pygame.draw.rect(screen, pygame.Color("lightblue"), self.rect, 4)
 
 
-class HaveLogin(QWidget):
-    def __init__(self, hv_or_cr, log):
+class HaveLogin:
+    def __init__(self, login):
         super().__init__()
+        pygame.init()
 
-        self.log = log
+        size = width, height = 600, 500
+        screen = pygame.display.set_mode(size)
 
-        self.con = sqlite3.connect("one_little_worm.db")
-        self.cur = self.con.cursor()
+        titl = pygame.font.SysFont('arial', 36)
+        self.text1 = titl.render("Добро ожаловать,", 1, pygame.Color("blue"))
 
-        self.setGeometry(600, 350, 500, 400)
-        self.setWindowTitle("HaveLogin")
+        log = pygame.font.SysFont('colibri', 50)
+        self.text2 = log.render(login, 1, pygame.Color('lightblue'))
 
-        self.lbl = QLabel(self)
-        if hv_or_cr == "have":
-            self.lbl.setText("Логин найден")
-        elif hv_or_cr == "created":
-            self.lbl.setText("Логин создан")
-        self.lbl.setFont(QFont('Serif', 15, QFont.Bold))
-        self.lbl.resize(self.lbl.sizeHint())
-        self.lbl.move(158, 70)
+        act_open = pygame.font.SysFont("arial", 25)
+        self.text3 = act_open.render(f"Начать игру", 1, pygame.Color("lightblue"))
 
-        self.start_game = QPushButton(self)
-        self.start_game.setText("Начать игру")
-        self.start_game.setFont(QFont("Times", 10, QFont.AnyStyle))
-        self.start_game.resize(190, 30)
-        self.start_game.move(150, 160)
-        self.start_game.clicked.connect(self.game_start)
+        act_chg = pygame.font.SysFont("arial", 25)
+        self.text4 = act_chg.render("Выбрать персонажа", 1, pygame.Color("lightblue"))
 
-        self.sh_rec = QPushButton(self)
-        self.sh_rec.setText("Таблица рекордов")
-        self.sh_rec.setFont(QFont("Times", 10, QFont.AnyStyle))
-        self.sh_rec.resize(190, 30)
-        self.sh_rec.move(150, 205)
-        self.sh_rec.clicked.connect(self.record_tbl)
+        act_exit = pygame.font.SysFont("arial", 25)
+        self.text5 = act_exit.render("Сменить пользователя", 1,
+                                    pygame.Color("lightblue"))
 
-        self.del_acc = QPushButton(self)
-        self.del_acc.setText("Удалить пользователя")
-        self.del_acc.setFont(QFont("Times", 10, QFont.AnyStyle))
-        self.del_acc.resize(190, 30)
-        self.del_acc.move(150, 250)
-        self.del_acc.clicked.connect(self.del_account)
+        run = True
 
-    def del_account(self):
-        print(self.log)
+        while run:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    '''if 160 <= event.pos[0] <= 450 and 160 <= event.pos[1] <= 213:
+                        # открытие окна с полем
+                    if 160 <= event.pos[0] <= 450 and 160 <= event.pos[1] <= 283:
+                        # открытие окна с персоажами'''
+                    if 160 <= event.pos[0] <= 450 and 160 <= event.pos[1] <= 353:
+                        run = False
+                        # выход к стартовому окну
+            screen.fill((30, 30, 30))
+            for i in range(3):
+                pygame.draw.rect(screen, pygame.Color("blue"),
+                                 (160, 160 + i * 70, 290, 53), 3)
+            screen.blit(self.text1, (100, 60))
+            screen.blit(self.text2, (435, 65))
+            screen.blit(self.text3, (230, 170))
+            screen.blit(self.text4, (180, 240))
+            screen.blit(self.text5, (175, 310))
+            pygame.display.flip()
 
-        #   удаляем логин пользователя из таблицв logins и Main
-        self.del_the_acc_logins = self.cur.execute("""DELETE FROM logins WHERE 
-                                                    login == ?""", (self.log,))
-        self.del_the_acc_main = self.cur.execute("""DELETE FROM Main WHERE 
-                                                    login == ?""", (self.log,))
-
-        self.con.commit()
-        self.con.close()
-        self.close()
-
-    def record_tbl(self):
-        pass
-        # нужно это или нет
-
-    def game_start(self):
-        pass
-        #   как открыть в новом окне игру
-
-
-class NoLogin(QWidget):
-    def __init__(self, log):
+class NoLogin:
+    def __init__(self, login):
         super().__init__()
+        pygame.init()
 
-        self.log = log
-        print("here", self.log)
+        size = width, height = 600, 500
+        screen = pygame.display.set_mode(size)
 
-        self.con = sqlite3.connect("one_little_worm.db")
-        self.cur = self.con.cursor()
+        titl = pygame.font.SysFont('arial', 36)
+        self.text1 = titl.render("Новый игрок,", 1, pygame.Color("blue"))
 
-        self.setGeometry(600, 350, 500, 400)
-        self.setWindowTitle("NoLogin")
+        log = pygame.font.SysFont('colibri', 50)
+        self.text2 = log.render(login, 1, pygame.Color('lightblue'))
 
-        self.titl = QLabel(self)
-        self.titl.setText("Логин не найден")
-        self.titl.setFont(QFont('Serif', 15, QFont.Bold))
-        self.titl.resize(self.titl.sizeHint())
-        self.titl.move(148, 70)
+        act_open = pygame.font.SysFont("arial", 25)
+        self.text3 = act_open.render(f"Начать игру", 1, pygame.Color("lightblue"))
 
-        self.cr_log = QPushButton(self)
-        self.cr_log.setText("Создать логин")
-        self.cr_log.setFont(QFont("Times", 10, QFont.AnyStyle))
-        self.cr_log.resize(150, 30)
-        self.cr_log.move(175, 160)
-        self.cr_log.clicked.connect(self.create_log)
+        act_chg = pygame.font.SysFont("arial", 25)
+        self.text4 = act_chg.render("Выбрать персонажа", 1, pygame.Color("lightblue"))
 
-        self.exit = QPushButton(self)
-        self.exit.setText("Выйти")
-        self.exit.setFont(QFont("Times", 10, QFont.AnyStyle))
-        self.exit.resize(150, 30)
-        self.exit.move(175, 205)
+        act_exit = pygame.font.SysFont("arial", 25)
+        self.text5 = act_exit.render("Сменить пользователя", 1,
+                                    pygame.Color("lightblue"))
 
-    def create_log(self):
-        # добавляем log в таблицы Main и logins
+        run = True
 
-        self.ap_log_logins = self.cur.execute("""INSERT INTO logins(login) 
-                                            VALUES(?)""", (self.log,))
-        self.ap_log_main = self.cur.execute("""INSERT INTO Main(login, 
-                                            record, place) VALUES(?, 0, 0)""",
-                                            (self.log,))
-        self.con.commit()
-        print('ok')
-        self.close()
+        while run:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    '''if 160 <= event.pos[0] <= 450 and 160 <= event.pos[1] <= 213:
+                        # открытие окна с полем
+                    if 160 <= event.pos[0] <= 450 and 160 <= event.pos[1] <= 283:
+                        # открытие окна с персоажами'''
+                    if 160 <= event.pos[0] <= 450 and 160 <= event.pos[1] <= 353:
+                        run = False
+                        # выход к стартовому окну
+            screen.fill((30, 30, 30))
+            for i in range(3):
+                pygame.draw.rect(screen, pygame.Color("blue"),
+                                 (160, 160 + i * 70, 290, 53), 3)
+            screen.blit(self.text1, (100, 60))
+            screen.blit(self.text2, (435, 65))
+            screen.blit(self.text3, (230, 170))
+            screen.blit(self.text4, (180, 240))
+            screen.blit(self.text5, (175, 310))
+            pygame.display.flip()
 
-        self.open_log = HaveLogin("created", self.log)
-        self.open_log.show()
-
-
-# class Game(QWidget):
-
-if __name__ == '__main__':
-    app = QApplication(sys.argv)
-    paint = StartWindow()
-    paint.show()
-    sys.exit(app.exec_())
->>>>>>> Stashed changes
+start = StartWindow()
