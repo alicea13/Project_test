@@ -72,18 +72,17 @@ class InputText:
             self.text_surf = pygame.font.Font(None, 32).render(self.login_t, True, pygame.Color('lightblue'))
 
     def open(self, login_t):
-        self.id_login = self.cur.execute("""SELECT id FROM Main
+        self.id_login = self.cur.execute("""SELECT id FROM logins
                                             WHERE login == ?""",
                                          (login_t,)).fetchall()
         print(self.id_login)
         if self.id_login != []:
-            self.l, = self.log_id[0] ###
+            self.l, = self.id_login[0] ###
 
-            self.have_login = HaveLogin(self.login.text())
-            self.have_login.show()
+            self.have_login = HaveLogin(login_t)
         else:
-            self.no_login = NoLogin(self.login.text())
-            self.no_login.show()
+            self.no_login = NoLogin(login_t)
+            #self.no_login.show()
             #self.close()
 
     def update(self):
@@ -96,6 +95,102 @@ class InputText:
         pygame.draw.rect(screen, pygame.Color("lightblue"), self.rect, 4)
 
 
+class HaveLogin:
+    def __init__(self, login):
+        super().__init__()
+        pygame.init()
 
+        size = width, height = 600, 500
+        screen = pygame.display.set_mode(size)
+
+        titl = pygame.font.SysFont('arial', 36)
+        self.text1 = titl.render("Добро ожаловать,", 1, pygame.Color("blue"))
+
+        log = pygame.font.SysFont('colibri', 50)
+        self.text2 = log.render(login, 1, pygame.Color('lightblue'))
+
+        act_open = pygame.font.SysFont("arial", 25)
+        self.text3 = act_open.render(f"Начать игру", 1, pygame.Color("lightblue"))
+
+        act_chg = pygame.font.SysFont("arial", 25)
+        self.text4 = act_chg.render("Выбрать персонажа", 1, pygame.Color("lightblue"))
+
+        act_exit = pygame.font.SysFont("arial", 25)
+        self.text5 = act_exit.render("Сменить пользователя", 1,
+                                    pygame.Color("lightblue"))
+
+        run = True
+
+        while run:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    '''if 160 <= event.pos[0] <= 450 and 160 <= event.pos[1] <= 213:
+                        # открытие окна с полем
+                    if 160 <= event.pos[0] <= 450 and 160 <= event.pos[1] <= 283:
+                        # открытие окна с персоажами'''
+                    if 160 <= event.pos[0] <= 450 and 160 <= event.pos[1] <= 353:
+                        run = False
+                        # выход к стартовому окну
+            screen.fill((30, 30, 30))
+            for i in range(3):
+                pygame.draw.rect(screen, pygame.Color("blue"),
+                                 (160, 160 + i * 70, 290, 53), 3)
+            screen.blit(self.text1, (100, 60))
+            screen.blit(self.text2, (435, 65))
+            screen.blit(self.text3, (230, 170))
+            screen.blit(self.text4, (180, 240))
+            screen.blit(self.text5, (175, 310))
+            pygame.display.flip()
+
+class NoLogin:
+    def __init__(self, login):
+        super().__init__()
+        pygame.init()
+
+        size = width, height = 600, 500
+        screen = pygame.display.set_mode(size)
+
+        titl = pygame.font.SysFont('arial', 36)
+        self.text1 = titl.render("Новый игрок,", 1, pygame.Color("blue"))
+
+        log = pygame.font.SysFont('colibri', 50)
+        self.text2 = log.render(login, 1, pygame.Color('lightblue'))
+
+        act_open = pygame.font.SysFont("arial", 25)
+        self.text3 = act_open.render(f"Начать игру", 1, pygame.Color("lightblue"))
+
+        act_chg = pygame.font.SysFont("arial", 25)
+        self.text4 = act_chg.render("Выбрать персонажа", 1, pygame.Color("lightblue"))
+
+        act_exit = pygame.font.SysFont("arial", 25)
+        self.text5 = act_exit.render("Сменить пользователя", 1,
+                                    pygame.Color("lightblue"))
+
+        run = True
+
+        while run:
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    run = False
+                if event.type == pygame.MOUSEBUTTONDOWN:
+                    '''if 160 <= event.pos[0] <= 450 and 160 <= event.pos[1] <= 213:
+                        # открытие окна с полем
+                    if 160 <= event.pos[0] <= 450 and 160 <= event.pos[1] <= 283:
+                        # открытие окна с персоажами'''
+                    if 160 <= event.pos[0] <= 450 and 160 <= event.pos[1] <= 353:
+                        run = False
+                        # выход к стартовому окну
+            screen.fill((30, 30, 30))
+            for i in range(3):
+                pygame.draw.rect(screen, pygame.Color("blue"),
+                                 (160, 160 + i * 70, 290, 53), 3)
+            screen.blit(self.text1, (100, 60))
+            screen.blit(self.text2, (435, 65))
+            screen.blit(self.text3, (230, 170))
+            screen.blit(self.text4, (180, 240))
+            screen.blit(self.text5, (175, 310))
+            pygame.display.flip()
 
 start = StartWindow()
